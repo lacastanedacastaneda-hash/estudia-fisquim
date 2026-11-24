@@ -19,7 +19,7 @@ export const MODULES: StudyModule[] = [
     href: "/taula",
     title: "Taula periòdica",
     description: "Explora els elements i posa't a prova.",
-    available: false,
+    available: true,
   },
   {
     id: "ions",
