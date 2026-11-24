@@ -11,8 +11,8 @@ export const MODULES: StudyModule[] = [
     id: "formulacio",
     href: "/formulacio",
     title: "Formulació inorgànica",
-    description: "Passa de nom a fórmula i de fórmula a nom.",
-    available: false,
+    description: "Òxids, hidrurs i sals binàries: de nom a fórmula i de fórmula a nom.",
+    available: true,
   },
   {
     id: "taula",

@@ -8,9 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **estudia-fisquim** is a study web app for a Física i Química exam for 3r d'ESO (Catalunya). The UI is in **Catalan** and must work well on mobile. There is no backend: the app is a static export, and progress is stored in `localStorage`.
 
-Planned modules (each has a short explanation, random exercises with step-by-step correction, and a score counter):
+Modules (each has a short explanation, random exercises with step-by-step correction, and a score counter):
 
-1. Formulació inorgànica: name ↔ formula
+1. Formulació inorgànica: name ↔ formula for oxides, hydrides and binary salts, systematic and Stock nomenclature — **implemented** (`/formulacio`)
 2. Taula periòdica interactiva + quiz — **implemented** (`/taula`)
 3. Ions (anions/cations) — **implemented** (`/ions`)
 4. Isòtops (ᴬ_Z X → protons, neutrons, electrons) — **implemented** (`/isotops`)
@@ -55,6 +55,7 @@ Shared pieces:
 - `components/PeriodicTable.tsx` — clickable 18-column grid (scrolls horizontally on phones), used both to explore and as an answer input in the quiz (`selected`, `onSelect`, `marks` for correct/wrong cells).
 - `lib/mass.ts` — besides the module logic, holds the atomic-mass table (`ATOMIC_MASS`, one decimal as in 3r ESO tables), natural isotope abundances, and `parseFormula` (counts atoms, handles parentheses: `Al2(SO4)3`). Formulas are stored as plain strings like `"Ca(OH)2"`; `formulaText` turns them into `Ca(OH)₂` for display.
 - `lib/configuration.ts` — fills subshells in Moeller (Madelung) order with no exceptions, so exercises exclude Cr and Cu and only use ions that end with a noble-gas configuration (2, 10, 18, 36 electrons). `parseConfiguration` reads what students type: `1s2 2s2`, superscripts, no spaces (`1s22s2`), or a noble-gas core (`[Ne] 3s1`). Answers are accepted in any subshell order.
+- `lib/formulation.ts` — `COMPOUNDS` is generated from cation/anion data (each cation lists **all** its usual oxidation numbers, which decides whether a Stock name needs a Roman numeral). Formulas come from crossing oxidation numbers and simplifying; names are generated, not stored, except the special hydrides (H₂O, NH₃, CH₄…). Systematic names show «monòxid» for oxides and no «mono» elsewhere, and accept both. `normalizeCompoundName` makes name comparison lenient (accents, case, `d'`/`de`, space before the parenthesis, `pentaòxid`/`pentòxid`); formulas are compared exactly, case-sensitive.
 - `lib/exercise.ts` — `parseCount` for integers, `parseDecimal`/`isClose` for decimal answers (accepts comma or dot and a trailing unit like `u` or `%`).
 - `lib/random.ts` — `randInt`, `pick`.
 
