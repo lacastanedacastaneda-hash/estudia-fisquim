@@ -34,6 +34,11 @@ export default function TaulaPage() {
             els <strong>semimetalls</strong> (B, Si, Ge, As, Sb, Te) fan l&apos;escala entre tots dos; els{" "}
             <strong>gasos nobles</strong> són el grup 18. L&apos;hidrogen és al grup 1 però és un no metall.
           </p>
+          <p>
+            Les <strong>valències</strong> (nombres d&apos;oxidació) indiquen amb quina càrrega pot actuar un element
+            quan forma compostos. Les positives les fa servir quan cedeix electrons i les negatives quan en guanya. Les
+            necessitaràs per a la formulació.
+          </p>
           <p className="text-zinc-500">
             Les masses entre parèntesis són les de l&apos;isòtop més estable d&apos;elements que no tenen isòtops
             estables. El quiz pregunta pels 36 primers elements i alguns d&apos;habituals (Ag, Sn, I, Au, Hg, Pb, U…).

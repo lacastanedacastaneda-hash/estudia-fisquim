@@ -14,6 +14,7 @@ import {
   articled,
   byZ,
   massText,
+  valencesText,
   type BroadType,
 } from "@/lib/periodic-table";
 
@@ -91,6 +92,8 @@ function Explore() {
                 {massText(e)} u
                 {e.radioactiveMass && <span className="text-zinc-500"> (isòtop més estable)</span>}
               </dd>
+              <dt className="text-zinc-500">Valències</dt>
+              <dd className={e.valences.length ? "font-semibold tabular-nums" : "text-zinc-500"}>{valencesText(e)}</dd>
               <dt className="text-zinc-500">Grup</dt>
               <dd>{e.group ?? "— (bloc f)"}</dd>
               <dt className="text-zinc-500">Període</dt>

@@ -1,3 +1,5 @@
+import { chargeValue } from "./notation";
+
 // Taula periòdica completa (118 elements). El grup, el període i la categoria
 // es calculen a partir de Z perquè no puguin quedar incoherents.
 
@@ -23,6 +25,8 @@ export type PTElement = {
   mass: number;
   /** true si `mass` és la de l'isòtop més estable (es mostra entre parèntesis). */
   radioactiveMass: boolean;
+  /** Valències (nombres d'oxidació) habituals, amb signe. Buit si no en té o no se'n coneixen. */
+  valences: number[];
   period: number;
   /** null per als lantànids i actínids (bloc f). */
   group: number | null;
@@ -64,6 +68,25 @@ const DATA: [string, string, number][] = [
   ["Rg", "Roentgeni", 282], ["Cn", "Copernici", 285], ["Nh", "Nihoni", 286], ["Fl", "Flerovi", 289],
   ["Mc", "Moscovi", 290], ["Lv", "Livermori", 293], ["Ts", "Tennes", 294], ["Og", "Oganessó", 294],
 ];
+
+// Valències habituals (nombres d'oxidació), com a les taules de 3r d'ESO: primer
+// les positives, després les negatives. Els gasos nobles i els elements a partir
+// del 104 no en tenen (o no se'n coneixen prou).
+const VALENCES: Record<string, number[]> = {
+  H: [1, -1], Li: [1], Be: [2], B: [3], C: [2, 4, -4], N: [1, 2, 3, 4, 5, -3], O: [-2], F: [-1],
+  Na: [1], Mg: [2], Al: [3], Si: [4, -4], P: [3, 5, -3], S: [2, 4, 6, -2], Cl: [1, 3, 5, 7, -1],
+  K: [1], Ca: [2], Sc: [3], Ti: [2, 3, 4], V: [2, 3, 4, 5], Cr: [2, 3, 6], Mn: [2, 3, 4, 6, 7],
+  Fe: [2, 3], Co: [2, 3], Ni: [2, 3], Cu: [1, 2], Zn: [2], Ga: [3], Ge: [2, 4, -4], As: [3, 5, -3],
+  Se: [2, 4, 6, -2], Br: [1, 3, 5, 7, -1],
+  Rb: [1], Sr: [2], Y: [3], Zr: [4], Nb: [3, 5], Mo: [4, 6], Tc: [4, 7], Ru: [3, 4], Rh: [3], Pd: [2, 4],
+  Ag: [1], Cd: [2], In: [3], Sn: [2, 4], Sb: [3, 5, -3], Te: [2, 4, 6, -2], I: [1, 3, 5, 7, -1],
+  Cs: [1], Ba: [2], La: [3], Ce: [3, 4], Pr: [3], Nd: [3], Pm: [3], Sm: [2, 3], Eu: [2, 3], Gd: [3],
+  Tb: [3], Dy: [3], Ho: [3], Er: [3], Tm: [3], Yb: [2, 3], Lu: [3], Hf: [4], Ta: [5], W: [4, 6],
+  Re: [4, 7], Os: [4], Ir: [3, 4], Pt: [2, 4], Au: [1, 3], Hg: [1, 2], Tl: [1, 3], Pb: [2, 4],
+  Bi: [3, 5], Po: [2, 4], At: [-1],
+  Fr: [1], Ra: [2], Ac: [3], Th: [4], Pa: [5], U: [3, 4, 5, 6], Np: [5], Pu: [4], Am: [3], Cm: [3],
+  Bk: [3], Cf: [3], Es: [3], Fm: [3], Md: [3], No: [2], Lr: [3],
+};
 
 const PERIOD_START = [1, 3, 11, 19, 37, 55, 87, 119];
 
@@ -115,6 +138,7 @@ export const PERIODIC_TABLE: PTElement[] = DATA.map(([symbol, name, mass], i) =>
     name,
     mass,
     radioactiveMass: (z === 43 || z === 61 || z >= 84) && z !== 90 && z !== 91 && z !== 92,
+    valences: VALENCES[symbol] ?? [],
     period: periodOf(z),
     group,
     category,
@@ -147,6 +171,13 @@ export const TYPE_LABEL: Record<BroadType, string> = {
 };
 
 /** Massa per mostrar: 55,845 · (98). */
+/** Valències per mostrar: "+1, +3, +5, +7, −1", o el motiu si no en té. */
+export function valencesText(e: PTElement): string {
+  if (e.valences.length > 0) return e.valences.map(chargeValue).join(", ");
+  if (e.category === "noble-gas") return "Cap: és un gas noble i gairebé no forma compostos";
+  return "Sense dades: és un element sintètic molt inestable";
+}
+
 export function massText(e: PTElement): string {
   const s = String(e.mass).replace(".", ",");
   return e.radioactiveMass ? `(${s})` : s;

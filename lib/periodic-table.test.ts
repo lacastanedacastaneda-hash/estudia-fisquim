@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { ELEMENTS } from "./elements";
 import { EMPTY_PT_ANSWERS, COMMON_Z, correctPTExercise, generatePTExercise } from "./periodic-quiz";
-import { PERIODIC_TABLE, articled, byZ, massText, normalizeName, type Category } from "./periodic-table";
+import { COMPOUNDS } from "./formulation";
+import { PERIODIC_TABLE, articled, byZ, massText, normalizeName, valencesText, type Category } from "./periodic-table";
 
 const bySymbol = (symbol: string) => PERIODIC_TABLE.find((e) => e.symbol === symbol)!;
 
@@ -46,6 +47,36 @@ describe("periodic table data", () => {
     for (const e of ELEMENTS) {
       expect(byZ(e.z).symbol).toBe(e.symbol);
       expect(byZ(e.z).name).toBe(e.name);
+    }
+  });
+
+  it("has valences for every element except noble gases and elements from Z = 104", () => {
+    for (const e of PERIODIC_TABLE) {
+      const expectNone = e.category === "noble-gas" || e.z >= 104;
+      expect(e.valences.length === 0).toBe(expectNone);
+      expect(new Set(e.valences).size).toBe(e.valences.length);
+      expect(e.valences).not.toContain(0);
+    }
+  });
+
+  it("shows valences with signs, or why there are none", () => {
+    expect(valencesText(bySymbol("Cl"))).toBe("+1, +3, +5, +7, −1");
+    expect(valencesText(bySymbol("Fe"))).toBe("+2, +3");
+    expect(valencesText(bySymbol("Ne"))).toContain("gas noble");
+    expect(valencesText(bySymbol("Og"))).toContain("gas noble");
+    expect(valencesText(bySymbol("Rf"))).toContain("Sense dades");
+  });
+
+  it("agrees with the ion charges and the formulation data", () => {
+    for (const e of ELEMENTS) {
+      for (const charge of e.ions) expect(byZ(e.z).valences, `${e.symbol} ${charge}`).toContain(charge);
+    }
+    for (const c of COMPOUNDS) {
+      if (c.special) continue;
+      const cation = bySymbol(c.cation.symbol);
+      // Les valències positives decideixen si el nom de Stock porta xifra romana: han de coincidir.
+      expect(cation.valences.filter((v) => v > 0), c.cation.symbol).toEqual(c.cation.valences);
+      expect(bySymbol(c.anion.symbol).valences, c.anion.symbol).toContain(-c.anion.charge);
     }
   });
 
