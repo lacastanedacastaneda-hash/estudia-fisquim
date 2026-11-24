@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Web estàtica sense backend: `npm run build` genera la carpeta `out/`.
+  // No activis `cacheComponents` / `partialPrefetching`: són incompatibles amb
+  // `output: "export"` ("PPR cannot be enabled in export mode").
+  output: "export",
   turbopack: {
     rules: {
       "*.css": {
