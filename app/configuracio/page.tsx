@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Example, Section, formulaBox as box } from "@/components/Explanation";
 import MoellerDiagram from "@/components/MoellerDiagram";
 import ScoreBoard from "@/components/ScoreBoard";
 import ConfigQuiz from "./ConfigQuiz";
@@ -8,26 +8,6 @@ import ConfigStepper from "./ConfigStepper";
 export const metadata: Metadata = {
   title: "Configuració electrònica",
 };
-
-const box = "rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800";
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="space-y-2">
-      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
-      {children}
-    </section>
-  );
-}
-
-function Example({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
-      <p className="font-semibold text-zinc-900 dark:text-zinc-100">{title}</p>
-      <div className="mt-1 space-y-1">{children}</div>
-    </div>
-  );
-}
 
 export default function ConfigPage() {
   return (
