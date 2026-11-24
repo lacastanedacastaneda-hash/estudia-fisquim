@@ -32,15 +32,19 @@ The module list and each module's `available` flag are in `lib/modules.ts`; the 
 npm run dev     # dev server at http://localhost:3000
 npm run build   # static export to out/ (also type-checks)
 npm run lint    # ESLint (flat config in eslint.config.mjs)
+npm test        # Vitest, single run
+npm run test:watch                    # Vitest in watch mode
+npx vitest run lib/mass.test.ts       # one test file
+npx vitest run -t "parseFormula"      # tests whose name matches
 ```
 
-No test framework is set up yet.
+Tests live next to the logic as `lib/<module>.test.ts` and cover only the pure `lib/` code (no React, no DOM). When changing a module's logic or data, add or update cases there; the generators are tested by running thousands of random exercises against invariants.
 
 ## Architecture
 
 Each module follows the same split:
 
-- `lib/<module>.ts` — pure logic, no React: `generate…(previous?)` returns a random exercise (different from the previous one), and `correct…(exercise, answers)` returns a `Correction` (`ok`, per-field results, step-by-step explanation strings in Catalan) built with `field`/`makeCorrection` from `lib/exercise.ts`. Answers are kept as raw input strings and parsed here. Keep logic here so it can be tested without the UI.
+- `lib/<module>.ts` — pure logic, no React: `generate…(previous?)` returns a random exercise (different from the previous one), and `correct…(exercise, answers)` returns a `Correction` (`ok`, per-field results, step-by-step explanation strings in Catalan) built with `field`/`makeCorrection` from `lib/exercise.ts`. Answers are kept as raw input strings and parsed here. Keep logic here so it can be tested without the UI (`lib/<module>.test.ts`).
 - `app/<module>/page.tsx` — server component: metadata, the explanation text, `<ScoreBoard moduleId=…>`, and the quiz.
 - `app/<module>/<Module>Quiz.tsx` — client component. Wraps its content in `<ClientOnly>` (random exercises must only be generated in the browser, or the prerendered HTML won't match on hydration), uses `useQuiz({ moduleId, generate, emptyAnswers, correct })` for state and scoring, and renders a `QuizCard` (prompt, Comprova/Següent button, correction panel) with inputs from `components/quiz/fields.tsx`.
 
