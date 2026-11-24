@@ -1,7 +1,8 @@
 "use client";
 
-const inputClass =
-  "mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-lg tabular-nums dark:border-zinc-700 dark:bg-zinc-950 disabled:opacity-70";
+const inputBase =
+  "block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-lg tabular-nums dark:border-zinc-700 dark:bg-zinc-950 disabled:opacity-70";
+const inputClass = `mt-1 ${inputBase}`;
 
 type FieldProps = {
   label: string;
@@ -25,6 +26,31 @@ export function NumberField(props: FieldProps) {
         disabled={props.disabled}
         className={inputClass}
       />
+    </label>
+  );
+}
+
+/** Camp per a nombres decimals (coma o punt), amb la unitat a la dreta. */
+export function DecimalField(props: FieldProps & { unit?: string }) {
+  return (
+    <label className="block">
+      <span className="text-sm font-medium">{props.label}</span>
+      <span className="relative mt-1 block">
+        <input
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          value={props.value}
+          onChange={(e) => props.onChange(e.target.value)}
+          disabled={props.disabled}
+          className={`${inputBase} ${props.unit ? "pr-10" : ""}`}
+        />
+        {props.unit && (
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-zinc-500">
+            {props.unit}
+          </span>
+        )}
+      </span>
     </label>
   );
 }

@@ -40,7 +40,7 @@ export const MODULES: StudyModule[] = [
     href: "/massa",
     title: "Massa atòmica i molecular",
     description: "Mitjana ponderada d'isòtops i massa de molècules.",
-    available: false,
+    available: true,
   },
   {
     id: "configuracio",

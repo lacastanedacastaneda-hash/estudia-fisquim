@@ -38,6 +38,22 @@ export function isotopeText(symbol: string, a: number, z: number, charge = 0): s
   return superscript(String(a)) + subscript(String(z)) + ionSymbol(symbol, charge);
 }
 
+/** Fórmula química amb subíndexs: "Al2(SO4)3" → "Al₂(SO₄)₃". */
+export function formulaText(formula: string): string {
+  return subscript(formula);
+}
+
+/** Nombre amb coma decimal i com a molt `maxDecimals` decimals: 35,48 · 2653 · −140. */
+export function formatNumber(n: number, maxDecimals = 2): string {
+  const rounded = Number(n.toFixed(maxDecimals));
+  return signed(rounded).replace(".", ",");
+}
+
+/** Nombre amb coma decimal i exactament `decimals` decimals: 16,0. */
+export function formatFixed(n: number, decimals: number): string {
+  return n.toFixed(decimals).replace(".", ",");
+}
+
 /** Càrrega com a nombre amb signe, per a les explicacions: +2, −1. */
 export function chargeValue(charge: number): string {
   return charge > 0 ? `+${charge}` : signed(charge);

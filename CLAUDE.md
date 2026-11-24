@@ -14,7 +14,7 @@ Planned modules (each has a short explanation, random exercises with step-by-ste
 2. Taula periòdica interactiva + quiz
 3. Ions (anions/cations) — **implemented** (`/ions`)
 4. Isòtops (ᴬ_Z X → protons, neutrons, electrons) — **implemented** (`/isotops`)
-5. Massa atòmica i molecular (weighted isotope average, molecular mass)
+5. Massa atòmica i molecular (weighted isotope average, abundances from average, molecular mass) — **implemented** (`/massa`)
 6. Configuració electrònica (shells and subshells, for elements and ions)
 
 The module list and each module's `available` flag are in `lib/modules.ts`; the home page renders from it.
@@ -51,10 +51,12 @@ Shared pieces:
 - `lib/progress.ts` — `useScore(moduleId)` returns `{ score, record(ok), reset }`. It's a `useSyncExternalStore` over one `localStorage` key (`fisquim:progress:v1`, JSON map of module id → `{correct, total}`). Storage failures fall back to in-memory state. `useQuiz` already calls `record`.
 - `lib/notation.ts` — plain-text chemistry notation: `ionSymbol` (Ca²⁺), `isotopeText` (³⁷₁₇Cl), `formatCharge` (2+, −), `chargeValue` (+2, −1), super/subscript helpers. `components/IsotopeNotation.tsx` renders ᴬ_Z X with stacked numbers for prompts.
 - `lib/elements.ts` — element data: Catalan name, Z, common ion charges (`ions`, empty if none), real isotope mass numbers (`isotopes`). The periodic-table module will extend it with mass, group, period, and type.
+- `lib/mass.ts` — besides the module logic, holds the atomic-mass table (`ATOMIC_MASS`, one decimal as in 3r ESO tables), natural isotope abundances, and `parseFormula` (counts atoms, handles parentheses: `Al2(SO4)3`). Formulas are stored as plain strings like `"Ca(OH)2"`; `formulaText` turns them into `Ca(OH)₂` for display.
+- `lib/exercise.ts` — `parseCount` for integers, `parseDecimal`/`isClose` for decimal answers (accepts comma or dot and a trailing unit like `u` or `%`).
 - `lib/random.ts` — `randInt`, `pick`.
 
 ## Conventions
 
 - All UI text is Catalan. Use proper chemistry notation: superscript charges (`Ca²⁺`, `Cl⁻`; see `lib/notation.ts`) and the real minus sign `−` (U+2212) in displayed text. Answer parsers should also accept the ASCII `-`.
-- Numeric inputs use `type="text"` with `inputMode="numeric"` for mobile keyboards.
+- Numeric inputs use `type="text"` with `inputMode="numeric"` (`NumberField`) or `"decimal"` (`DecimalField`) for mobile keyboards. Display decimals with a comma (`formatNumber`/`formatFixed` in `lib/notation.ts`).
 - The project owner communicates in Spanish; reply in Spanish.
