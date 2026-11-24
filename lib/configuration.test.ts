@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  abbreviatedConfig,
   configText,
+  fillingSteps,
   configuration,
   correctConfigExercise,
   generateConfigExercise,
@@ -22,6 +24,32 @@ describe("configuration", () => {
     expect(shells(configuration(19))).toEqual([2, 8, 8, 1]);
     expect(shells(configuration(26))).toEqual([2, 8, 14, 2]);
     expect(shells(configuration(38))).toEqual([2, 8, 18, 8, 2]);
+  });
+});
+
+describe("fillingSteps", () => {
+  it("places electrons subshell by subshell until none remain", () => {
+    const steps = fillingSteps(26);
+    expect(steps.map((s) => `${s.subshell.n}${s.subshell.l}${s.subshell.count}`)).toEqual([
+      "1s2", "2s2", "2p6", "3s2", "3p6", "4s2", "3d6",
+    ]);
+    expect(steps.map((s) => s.total)).toEqual([2, 4, 10, 12, 18, 20, 26]);
+    expect(steps.at(-1)).toMatchObject({ capacity: 10, remaining: 0 });
+  });
+});
+
+describe("abbreviatedConfig", () => {
+  it.each([
+    [1, null],
+    [2, null],
+    [3, "[He] 2s¹"],
+    [11, "[Ne] 3s¹"],
+    [18, "[Ne] 3s² 3p⁶"],
+    [26, "[Ar] 4s² 3d⁶"],
+    [35, "[Ar] 4s² 3d¹⁰ 4p⁵"],
+    [38, "[Kr] 5s²"],
+  ])("%i electrons → %j", (electrons, expected) => {
+    expect(abbreviatedConfig(electrons)).toBe(expected);
   });
 });
 

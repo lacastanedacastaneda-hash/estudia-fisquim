@@ -40,6 +40,42 @@ export function shells(config: Subshell[]): number[] {
   return Array.from(out, (v) => v ?? 0);
 }
 
+export type FillingStep = {
+  subshell: Subshell;
+  /** Màxim d'electrons que hi caben. */
+  capacity: number;
+  /** Electrons col·locats en total després d'omplir aquest subnivell. */
+  total: number;
+  /** Electrons que encara queden per col·locar. */
+  remaining: number;
+};
+
+/** Ompliment pas a pas, per a l'explicació guiada. */
+export function fillingSteps(electrons: number): FillingStep[] {
+  let total = 0;
+  return configuration(electrons).map((subshell) => {
+    total += subshell.count;
+    return { subshell, capacity: CAPACITY[subshell.l], total, remaining: electrons - total };
+  });
+}
+
+/** Gasos nobles en ordre, amb els seus electrons. */
+export const NOBLE_GASES = Object.entries(NOBLE_GAS_CORE).map(([symbol, electrons]) => ({ symbol, electrons }));
+
+/** Configuració abreujada amb el gas noble anterior: [Ar] 4s² 3d⁶. Null si no n'hi ha cap (Z ≤ 2). */
+export function abbreviatedConfig(electrons: number): string | null {
+  const gas = [...NOBLE_GASES].reverse().find((g) => g.electrons < electrons);
+  if (!gas) return null;
+  const coreLength = configuration(gas.electrons).length;
+  return `[${gas.symbol}] ${configText(configuration(electrons).slice(coreLength))}`;
+}
+
+/** Configuració real dels àtoms que no segueixen el diagrama de Moeller. */
+export const MOELLER_EXCEPTIONS: Record<number, string> = {
+  24: "[Ar] 4s¹ 3d⁵",
+  29: "[Ar] 4s¹ 3d¹⁰",
+};
+
 export function configText(config: Subshell[]): string {
   return config.map((s) => `${key(s)}${superscript(String(s.count))}`).join(" ");
 }
