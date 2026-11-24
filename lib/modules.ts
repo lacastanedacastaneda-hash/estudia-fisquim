@@ -47,6 +47,6 @@ export const MODULES: StudyModule[] = [
     href: "/configuracio",
     title: "Configuració electrònica",
     description: "Escriu la configuració per capes i subnivells.",
-    available: false,
+    available: true,
   },
 ];
