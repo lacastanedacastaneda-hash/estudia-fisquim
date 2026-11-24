@@ -1,4 +1,6 @@
 import { ELEMENTS, type ChemElement } from "./elements";
+import { field, makeCorrection, parseCount, type Correction, type FieldResult } from "./exercise";
+import { chargeValue, formatCharge, ionSymbol, signed } from "./notation";
 import { pick } from "./random";
 
 // Lògica del mòdul d'ions: generar exercicis i corregir-los.
@@ -22,32 +24,15 @@ export type IonAnswers = {
   type: IonType | null;
 };
 
-export type FieldResult = {
-  label: string;
-  expected: string;
-  given: string;
-  ok: boolean;
-};
-
-export type IonCorrection = {
-  ok: boolean;
-  fields: FieldResult[];
-  steps: string[];
-};
-
-export const EMPTY_ANSWERS: IonAnswers = { protons: "", electrons: "", charge: "", type: null };
+export const EMPTY_ION_ANSWERS: IonAnswers = { protons: "", electrons: "", charge: "", type: null };
 
 export const TYPE_LABEL: Record<IonType, string> = { cation: "Catió", anion: "Anió" };
 
-const MINUS = "−";
-const SUPERSCRIPT: Record<string, string> = {
-  "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
-  "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
-};
+const ION_ELEMENTS = ELEMENTS.filter((e) => e.ions.length > 0);
 
 export function generateIonExercise(previous?: IonExercise): IonExercise {
   for (;;) {
-    const element = pick(ELEMENTS);
+    const element = pick(ION_ELEMENTS);
     const exercise: IonExercise = {
       kind: Math.random() < 0.5 ? "particles" : "charge",
       element,
@@ -61,22 +46,6 @@ export function generateIonExercise(previous?: IonExercise): IonExercise {
       return exercise;
     }
   }
-}
-
-/** Càrrega en notació de química: 2+, +, 3−, −. */
-export function formatCharge(charge: number): string {
-  const sign = charge > 0 ? "+" : MINUS;
-  const n = Math.abs(charge);
-  return n === 1 ? sign : `${n}${sign}`;
-}
-
-/** Símbol de l'ió amb la càrrega en superíndex: Ca²⁺, Cl⁻. */
-export function ionSymbol(symbol: string, charge: number): string {
-  const sup = formatCharge(charge)
-    .split("")
-    .map((c) => (c === "+" ? "⁺" : c === MINUS ? "⁻" : SUPERSCRIPT[c]))
-    .join("");
-  return symbol + sup;
 }
 
 export function ionType(charge: number): IonType {
@@ -95,87 +64,68 @@ export function parseCharge(input: string): number | null {
   return (m[1] || m[3]) === "-" ? -n : n;
 }
 
-function parseCount(input: string): number | null {
-  const s = input.trim();
-  return /^\d+$/.test(s) ? Number(s) : null;
-}
-
-function signed(n: number): string {
-  return n < 0 ? `${MINUS}${Math.abs(n)}` : String(n);
-}
-
 function electronWord(n: number): string {
   return n === 1 ? "1 electró" : `${n} electrons`;
 }
 
-export function correctIonExercise(ex: IonExercise, answers: IonAnswers): IonCorrection {
+/** "ha perdut 2 electrons" / "ha guanyat 1 electró". */
+export function gainedOrLost(charge: number): string {
+  const n = Math.abs(charge);
+  return charge > 0 ? `ha perdut ${electronWord(n)}` : `ha guanyat ${electronWord(n)}`;
+}
+
+/** Pas de càlcul dels electrons d'un ió a partir de Z i la càrrega. */
+export function electronsFromChargeStep(z: number, charge: number): string {
+  const n = Math.abs(charge);
+  return charge > 0
+    ? `Electrons = Z − càrrega = ${z} − ${n} = ${z - charge}.`
+    : `Electrons = Z + ${n} = ${z} + ${n} = ${z - charge}.`;
+}
+
+export function correctIonExercise(ex: IonExercise, answers: IonAnswers): Correction {
   const { element, charge } = ex;
   const protons = element.z;
   const electrons = element.z - charge;
   const type = ionType(charge);
-  const change = Math.abs(charge);
-  const gainedOrLost =
-    charge > 0
-      ? `ha perdut ${electronWord(change)}`
-      : `ha guanyat ${electronWord(change)}`;
+  const ion = ionSymbol(element.symbol, charge);
   const typeStep =
     type === "cation"
       ? "Té càrrega positiva (ha perdut electrons) → és un catió."
       : "Té càrrega negativa (ha guanyat electrons) → és un anió.";
 
-  const typeField: FieldResult = {
-    label: "Tipus d'ió",
-    expected: TYPE_LABEL[type],
-    given: answers.type ? TYPE_LABEL[answers.type] : "—",
-    ok: answers.type === type,
-  };
-
-  let fields: FieldResult[];
-  let steps: string[];
+  const typeField: FieldResult = field(
+    "Tipus d'ió",
+    TYPE_LABEL[type],
+    answers.type ? TYPE_LABEL[answers.type] : "",
+    answers.type === type,
+  );
 
   if (ex.kind === "particles") {
-    const ion = ionSymbol(element.symbol, charge);
-    fields = [
-      {
-        label: "Protons",
-        expected: String(protons),
-        given: answers.protons.trim() || "—",
-        ok: parseCount(answers.protons) === protons,
-      },
-      {
-        label: "Electrons",
-        expected: String(electrons),
-        given: answers.electrons.trim() || "—",
-        ok: parseCount(answers.electrons) === electrons,
-      },
-      typeField,
-    ];
-    steps = [
-      `Els protons són el nombre atòmic: Z = ${protons} → ${protons} protons. Quan es forma un ió, els protons no canvien.`,
-      `La càrrega de l'ió ${ion} és ${formatCharge(charge)}: l'àtom ${gainedOrLost}.`,
-      charge > 0
-        ? `Electrons = Z − càrrega = ${protons} − ${change} = ${electrons}.`
-        : `Electrons = Z + ${change} = ${protons} + ${change} = ${electrons}.`,
-      typeStep,
-    ];
-  } else {
-    const givenCharge = parseCharge(answers.charge);
-    fields = [
-      {
-        label: "Càrrega",
-        expected: formatCharge(charge),
-        given: answers.charge.trim() || "—",
-        ok: givenCharge === charge,
-      },
-      typeField,
-    ];
-    steps = [
-      `Protons = Z = ${protons}.`,
-      `Càrrega = protons − electrons = ${protons} − ${electrons} = ${signed(charge)}, que s'escriu ${formatCharge(charge)}.`,
-      `L'àtom ${gainedOrLost}: l'ió és ${ionSymbol(element.symbol, charge)}.`,
-      typeStep,
-    ];
+    return makeCorrection(
+      [
+        field("Protons", protons, answers.protons, parseCount(answers.protons) === protons),
+        field("Electrons", electrons, answers.electrons, parseCount(answers.electrons) === electrons),
+        typeField,
+      ],
+      [
+        `Els protons són el nombre atòmic: Z = ${protons} → ${protons} protons. Quan es forma un ió, els protons no canvien.`,
+        `La càrrega de l'ió ${ion} és ${chargeValue(charge)}: l'àtom ${gainedOrLost(charge)}.`,
+        electronsFromChargeStep(protons, charge),
+        typeStep,
+      ],
+    );
   }
 
-  return { ok: fields.every((f) => f.ok), fields, steps };
+  return makeCorrection(
+    [
+      field("Càrrega", formatCharge(charge), answers.charge, parseCharge(answers.charge) === charge),
+      typeField,
+    ],
+    [
+      `Protons = Z = ${protons}.`,
+      `Càrrega = protons − electrons = ${protons} − ${electrons} = ${signed(charge)}, que s'escriu ${formatCharge(charge)}.`,
+      `L'àtom ${gainedOrLost(charge)}: l'ió és ${ion}.`,
+      typeStep,
+    ],
+  );
 }

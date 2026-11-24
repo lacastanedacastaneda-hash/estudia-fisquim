@@ -33,7 +33,7 @@ export const MODULES: StudyModule[] = [
     href: "/isotops",
     title: "Isòtops",
     description: "A partir de ᴬ_Z X, troba protons, neutrons i electrons.",
-    available: false,
+    available: true,
   },
   {
     id: "massa",

@@ -13,7 +13,7 @@ Planned modules (each has a short explanation, random exercises with step-by-ste
 1. Formulació inorgànica: name ↔ formula
 2. Taula periòdica interactiva + quiz
 3. Ions (anions/cations) — **implemented** (`/ions`)
-4. Isòtops (ᴬ_Z X → protons, neutrons, electrons)
+4. Isòtops (ᴬ_Z X → protons, neutrons, electrons) — **implemented** (`/isotops`)
 5. Massa atòmica i molecular (weighted isotope average, molecular mass)
 6. Configuració electrònica (shells and subshells, for elements and ions)
 
@@ -40,18 +40,21 @@ No test framework is set up yet.
 
 Each module follows the same split:
 
-- `lib/<module>.ts` — pure logic, no React: generate a random exercise, parse the student's answers, and return a correction (`ok`, per-field results, step-by-step explanation strings in Catalan). Keep logic here so it can be tested without the UI.
+- `lib/<module>.ts` — pure logic, no React: `generate…(previous?)` returns a random exercise (different from the previous one), and `correct…(exercise, answers)` returns a `Correction` (`ok`, per-field results, step-by-step explanation strings in Catalan) built with `field`/`makeCorrection` from `lib/exercise.ts`. Answers are kept as raw input strings and parsed here. Keep logic here so it can be tested without the UI.
 - `app/<module>/page.tsx` — server component: metadata, the explanation text, `<ScoreBoard moduleId=…>`, and the quiz.
-- `app/<module>/<Module>Quiz.tsx` — client component with the exercise form. Random exercises are generated **only on the client**: the outer component renders a placeholder until `useIsClient()` is true, so the prerendered HTML doesn't cause hydration mismatches with `Math.random()`.
+- `app/<module>/<Module>Quiz.tsx` — client component. Wraps its content in `<ClientOnly>` (random exercises must only be generated in the browser, or the prerendered HTML won't match on hydration), uses `useQuiz({ moduleId, generate, emptyAnswers, correct })` for state and scoring, and renders a `QuizCard` (prompt, Comprova/Següent button, correction panel) with inputs from `components/quiz/fields.tsx`.
+
+To add a module: write `lib/<module>.ts` following this shape, add the two `app/<module>/` files, and set `available: true` in `lib/modules.ts`.
 
 Shared pieces:
 
-- `lib/progress.ts` — `useScore(moduleId)` returns `{ score, record(ok), reset }`. It's a `useSyncExternalStore` over one `localStorage` key (`fisquim:progress:v1`, JSON map of module id → `{correct, total}`). Storage failures fall back to in-memory state. Use this for every module's score.
-- `lib/elements.ts` — element data (Catalan names, Z, common ion charges). Currently only the elements used by the ions module; the periodic-table module will extend it with mass, group, period, and type.
+- `lib/progress.ts` — `useScore(moduleId)` returns `{ score, record(ok), reset }`. It's a `useSyncExternalStore` over one `localStorage` key (`fisquim:progress:v1`, JSON map of module id → `{correct, total}`). Storage failures fall back to in-memory state. `useQuiz` already calls `record`.
+- `lib/notation.ts` — plain-text chemistry notation: `ionSymbol` (Ca²⁺), `isotopeText` (³⁷₁₇Cl), `formatCharge` (2+, −), `chargeValue` (+2, −1), super/subscript helpers. `components/IsotopeNotation.tsx` renders ᴬ_Z X with stacked numbers for prompts.
+- `lib/elements.ts` — element data: Catalan name, Z, common ion charges (`ions`, empty if none), real isotope mass numbers (`isotopes`). The periodic-table module will extend it with mass, group, period, and type.
 - `lib/random.ts` — `randInt`, `pick`.
 
 ## Conventions
 
-- All UI text is Catalan. Use proper chemistry notation: superscript charges (`Ca²⁺`, `Cl⁻`; see `ionSymbol` in `lib/ions.ts`) and the real minus sign `−` (U+2212) in displayed text. Answer parsers should also accept the ASCII `-`.
+- All UI text is Catalan. Use proper chemistry notation: superscript charges (`Ca²⁺`, `Cl⁻`; see `lib/notation.ts`) and the real minus sign `−` (U+2212) in displayed text. Answer parsers should also accept the ASCII `-`.
 - Numeric inputs use `type="text"` with `inputMode="numeric"` for mobile keyboards.
 - The project owner communicates in Spanish; reply in Spanish.
